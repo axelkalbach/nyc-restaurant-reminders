@@ -90,7 +90,8 @@ def build_email_body(restaurant, target_date, opening_dt, minutes_until):
     if restaurant.get("notes"):
         lines.append(restaurant["notes"])
 
-    lines += ["", "Good luck — move fast."]
+    source = "GitHub Actions (scheduled)" if os.getenv("GITHUB_ACTIONS") else "local run"
+    lines += ["", "Good luck — move fast.", "", f"Sent via {source}."]
 
     return "\n".join(lines)
 
