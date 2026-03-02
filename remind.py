@@ -117,13 +117,28 @@ def main():
     print(f"Current time: {now.strftime('%Y-%m-%d %H:%M:%S %Z')}")
     print(f"Alert window: {WINDOW_MINUTES} minutes ({WINDOW_MINUTES // 60}h)")
     print(f"Mode: {'DRY RUN' if dry_run else 'LIVE'}")
-    print(f"Checking {len(watchlist)} date(s) x {len(restaurants)} restaurant(s)...")
+    print(f"Checking {len(watchlist)} date(s)...")
     print()
 
-    for target_date_str in watchlist:
-        target_date = date.fromisoformat(target_date_str)
+    for entry in watchlist:
+        # Support both plain strings and {"date": ..., "restaurants": [...]} objects
+        if isinstance(entry, str):
+            target_date_str = entry
+            filter_names = None
+        else:
+            target_date_str = entry["date"]
+            filter_names = {r.lower() for r in entry.get("restaurants", [])} or None
 
-        for restaurant in restaurants:
+        target_date = date.fromisoformat(target_date_str)
+        active_restaurants = [
+            r for r in restaurants
+            if filter_names is None or r["name"].lower() in filter_names
+        ]
+
+        label = f"{len(active_restaurants)} restaurant(s)" if filter_names is None else f"{len(active_restaurants)} selected restaurant(s)"
+        print(f"  {target_date_str}: checking {label}")
+
+        for restaurant in active_restaurants:
             key = f"{restaurant['name']}_{target_date_str}"
 
             # Parse the restaurant's open_time and build a timezone-aware datetime
