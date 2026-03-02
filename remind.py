@@ -71,54 +71,26 @@ def build_email_body(restaurant, target_date, opening_dt, minutes_until):
     advance_type = restaurant.get("advance_type", "days_advance")
     advance_period = restaurant["advance_period"]
 
-    # Human-readable booking rule
     if advance_type == "first_of_month":
-        rule = (
-            f"{name} releases reservations on the 1st of the month, "
-            f"{advance_period} month(s) before your target month. "
-            f"Reservations for {target_date} opened on {opening_dt.strftime('%B 1, %Y')} "
-            f"at {opening_dt.strftime('%I:%M %p ET')}."
-        )
+        rule = f"Opens on the 1st of the month, {advance_period} month(s) before your target month."
     else:
-        rule = (
-            f"{name} releases reservations exactly {advance_period} days in advance, "
-            f"at {opening_dt.strftime('%I:%M %p ET')} Eastern. "
-            f"That means today — {opening_dt.strftime('%A, %B %-d')} — is the day to book "
-            f"for your target date of {target_date}."
-        )
+        rule = f"Releases {advance_period} days in advance at {opening_dt.strftime('%I:%M %p ET')}."
 
+    target_dt = datetime.strptime(target_date, "%Y-%m-%d")
     lines = [
-        f"Reservations at {name} open in {human_duration(minutes_until)}. Book now.",
+        f"Time to book {name}.",
         "",
-        "=" * 52,
-        "  RESERVATION DETAILS",
-        "=" * 52,
-        f"  Restaurant:   {name}" + (f" ({cuisine}, {area})" if cuisine and area else ""),
-        f"  Target date:  {target_date}",
-        f"  Window opens: {opening_dt.strftime('%A, %B %-d at %I:%M %p ET')}",
-        f"  Time to book: {human_duration(minutes_until)} from now",
+        f"Reservation date:  {target_dt.strftime('%A, %B %-d, %Y')}" + (f"  —  {cuisine}, {area}" if cuisine and area else ""),
+        f"Book at:           {opening_dt.strftime('%A, %B %-d at %I:%M %p ET')} ({human_duration(minutes_until)} from now)",
+        f"Platform:          {platform}  —  {link}",
         "",
-        "=" * 52,
-        "  HOW TO BOOK",
-        "=" * 52,
-        f"  Platform:     {platform}",
-        f"  Link:         {link}",
-        "",
-        "=" * 52,
-        "  THE RULES",
-        "=" * 52,
-        f"  {rule}",
+        rule,
     ]
 
     if restaurant.get("notes"):
-        lines += ["", f"  Note: {restaurant['notes']}"]
+        lines.append(restaurant["notes"])
 
-    lines += [
-        "",
-        "=" * 52,
-        "  Good luck — move fast!",
-        "=" * 52,
-    ]
+    lines += ["", "Good luck — move fast."]
 
     return "\n".join(lines)
 
@@ -194,9 +166,11 @@ def main():
                 continue
 
             minutes_until = max(1, int(delta_minutes))
+            target_dt = datetime.strptime(target_date_str, "%Y-%m-%d")
             subject = (
-                f"\u23f0 Book {restaurant['name']} NOW \u2014 "
-                f"reservations open in {human_duration(minutes_until)}!"
+                f"\u23f0 {restaurant['name']} | "
+                f"{target_dt.strftime('%b %-d')} | "
+                f"Book {opening_dt.strftime('%b %-d at %I:%M %p ET')}"
             )
             body = build_email_body(restaurant, target_date_str, opening_dt, minutes_until)
 
