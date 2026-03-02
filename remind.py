@@ -125,9 +125,11 @@ def main():
         if isinstance(entry, str):
             target_date_str = entry
             filter_names = None
+            recipient = notify_email
         else:
             target_date_str = entry["date"]
             filter_names = {r.lower() for r in entry.get("restaurants", [])} or None
+            recipient = entry.get("email", notify_email)
 
         target_date = date.fromisoformat(target_date_str)
         active_restaurants = [
@@ -136,7 +138,7 @@ def main():
         ]
 
         label = f"{len(active_restaurants)} restaurant(s)" if filter_names is None else f"{len(active_restaurants)} selected restaurant(s)"
-        print(f"  {target_date_str}: checking {label}")
+        print(f"  {target_date_str}: checking {label} -> {recipient}")
 
         for restaurant in active_restaurants:
             key = f"{restaurant['name']}_{target_date_str}"
@@ -198,8 +200,8 @@ def main():
                 continue
 
             try:
-                send_email(gmail_address, app_password, notify_email, subject, body)
-                print(f"    -> Email sent to {notify_email}")
+                send_email(gmail_address, app_password, recipient, subject, body)
+                print(f"    -> Email sent to {recipient}")
             except Exception as e:
                 print(f"    -> ERROR sending email: {e}")
                 continue
