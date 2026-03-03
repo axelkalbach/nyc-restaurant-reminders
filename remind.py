@@ -27,7 +27,7 @@ WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 NOTIFIED_FILE = BASE_DIR / "notified.json"
 
 EASTERN = pytz.timezone("America/New_York")
-WINDOW_MINUTES = 1440  # 24 hours — alert when opening is within this many minutes
+WINDOW_MINUTES = 60  # 1 hour — alert when opening is within this many minutes
 DEDUP_ENABLED = False  # set to True to stop re-sending already-notified reminders
 
 
